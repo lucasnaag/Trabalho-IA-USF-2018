@@ -1,25 +1,42 @@
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
-
+import java.lang.Math.*;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-public class Agente extends JPanel implements Runnable{
+
+public class AgenteHeuristica extends JPanel implements Runnable{
+
+    public class PosicaoInimigo {
+        private int x;
+        private int y;
+
+        public PosicaoInimigo(int x, int y){
+            this.x = x;
+            this.y = y;
+        }
+    }
     // objetos
     private JFrame tela;
     private Thread t;
     private Node root;
 
     // constantes
+    private static final int X = 0;
+    private static final int Y = 1;
     private static final int MAX_X = 800;
     private static final int MIN_X = 0;
     private static final int MAX_Y = 600;
     private static final int MIN_Y = 0;
     private static final int DIAMETRO = 50;
 
+
     //variaveis
+    private List<PosicaoInimigo> posicaoInimigos = new ArrayList<>();
     private int x = 0;
     private int y = 0;
     private int[][] inimigos;
@@ -28,9 +45,9 @@ public class Agente extends JPanel implements Runnable{
         new Agente();
     }
 
-    public Agente()
+    public AgenteHeuristica()
     {
-        tela = new JFrame("Agente Busca-Cega");
+        tela = new JFrame("Agente Heuristica");
 
         this.setDoubleBuffered(true);
         this.setLayout(null);
@@ -47,7 +64,6 @@ public class Agente extends JPanel implements Runnable{
         t = new Thread(this);
         t.start();
 
-
         Random ran = new Random();
 
         for (int i = 0; i < inimigos.length; i = i + DIAMETRO) {
@@ -55,6 +71,7 @@ public class Agente extends JPanel implements Runnable{
 
                 if(ran.nextInt() % 10 == 0) {
                     inimigos[i][j] = 1;
+                    posicaoInimigos.add(new PosicaoInimigo(i, j));
                 }
                 else
                     inimigos[i][j] = 0;
@@ -62,73 +79,41 @@ public class Agente extends JPanel implements Runnable{
         }
 
         // acoes 1 esq 2 dir 3 cima 4 baixo
-        if(x != (MAX_X - DIAMETRO) && y != (MAX_Y - DIAMETRO))
-            BuscaCega();
+        // Chama busca com Heuristica
+    }
+
+    private double distancia(PosicaoInimigo agente, PosicaoInimigo inimigo){
+        return Math.sqrt(Math.pow(Math.abs(inimigo.x - agente.x), 2) + Math.pow(Math.abs(inimigo.y - agente.y), 2));
     }
 
     public void paint(Graphics g){
 
-		g.setColor(getBackground());
-		g.fillRect(0, 0, getWidth(), getHeight());
-		g.setColor(getForeground());
-		g.setColor(Color.RED);
+        g.setColor(getBackground());
+        g.fillRect(0, 0, getWidth(), getHeight());
+        g.setColor(getForeground());
+        g.setColor(Color.RED);
 
-		g.fillOval(x, y, DIAMETRO, DIAMETRO);
-		inimigos[x][y] = 0;
+        g.fillOval(x, y, DIAMETRO, DIAMETRO);
+        inimigos[x][y] = 0;
 
-		System.out.println(" x" +x+ " y " +y);
+        System.out.println(" x" +x+ " y " +y);
 
-		for (int i = 0; i < inimigos.length; i = i + DIAMETRO) {
-			for (int j = 0; j < inimigos[i].length; j = j + DIAMETRO) {
-				if(inimigos[i][j] == 1)
-				{
-					g.setColor(Color.BLUE);
-					g.fillOval(i, j, DIAMETRO, DIAMETRO);
-				}
-			}
-		}
-	}
-
-    private void BuscaCega(){
-        root = new Node(2);
-        root.ac1 = new Node(2);
-        root.ac1.ac1 = new Node(2);
-        root.ac1.ac1.ac1 = new Node(2);
-        root.ac1.ac1.ac1.ac1 = new Node(2);
-        root.ac1.ac1.ac1.ac2 = new Node(2);
-        root.ac1.ac1.ac2 = new Node(2);
-        root.ac1.ac1.ac2.ac1 = new Node(2);
-        root.ac1.ac1.ac2.ac2 = new Node(2);
-        root.ac1.ac2 = new Node(2);
-        root.ac1.ac2.ac1 = new Node(2);
-        root.ac1.ac2.ac1.ac1 = new Node(2);
-        root.ac1.ac2.ac1.ac2 = new Node(2);
-        root.ac1.ac2.ac2 = new Node(2);
-        root.ac1.ac2.ac2.ac1 = new Node(2);
-        root.ac1.ac2.ac2.ac2 = new Node(4);
-        root.ac2 = new Node(1);
-        root.ac2.ac1 = new Node(1);
-        root.ac2.ac1.ac1 = new Node(1);
-        root.ac2.ac1.ac1.ac1 = new Node(1);
-        root.ac2.ac1.ac1.ac2 = new Node(1);
-        root.ac2.ac1.ac2 = new Node(1);
-        root.ac2.ac1.ac2.ac1 = new Node(1);
-        root.ac2.ac1.ac2.ac2 = new Node(1);
-        root.ac2.ac2 = new Node(1);
-        root.ac2.ac2.ac1 = new Node(1);
-        root.ac2.ac2.ac1.ac1 = new Node(1);
-        root.ac2.ac2.ac1.ac2 = new Node(1);
-        root.ac2.ac2.ac2 = new Node(1);
-        root.ac2.ac2.ac2.ac1 = new Node(1);
-        root.ac2.ac2.ac2.ac2 = new Node(1);
-        root.ac2.ac2.ac2.ac2.ac1 = new Node(4);
+        for (int i = 0; i < inimigos.length; i = i + DIAMETRO) {
+            for (int j = 0; j < inimigos[i].length; j = j + DIAMETRO) {
+                if(inimigos[i][j] == 1)
+                {
+                    g.setColor(Color.BLUE);
+                    g.fillOval(i, j, DIAMETRO, DIAMETRO);
+                }
+            }
+        }
     }
 
-	public void traversePreOrder(Node node) {
-		if (node != null) {
-		    boolean canWalk = true;
-			System.out.println(" " + node.value);
-			switch (node.value)
+    public void traversePreOrder(Node node) {
+        if (node != null) {
+            boolean canWalk = true;
+            System.out.println(" " + node.value);
+            switch (node.value)
             {
                 case 1:
                     if((x - DIAMETRO) < MIN_X) {
@@ -152,7 +137,7 @@ public class Agente extends JPanel implements Runnable{
                     break;
             }
 
-			if(canWalk)
+            if(canWalk)
                 controleAnda(node.value);
 
             traversePreOrder(node.ac1);
@@ -160,34 +145,34 @@ public class Agente extends JPanel implements Runnable{
         }
     }
 
-	void andaDireita()
-	{
-		x = x + DIAMETRO;
-		repaint();
+    void andaDireita()
+    {
+        x = x + DIAMETRO;
+        repaint();
 
-	}
+    }
 
-	void andaEsquerda()
-	{
-		x = x - DIAMETRO;
-		repaint();
+    void andaEsquerda()
+    {
+        x = x - DIAMETRO;
+        repaint();
 
-	}
+    }
 
-	void andaCima()
-	{
-		y = y - DIAMETRO;
-		repaint();
+    void andaCima()
+    {
+        y = y - DIAMETRO;
+        repaint();
 
-	}
+    }
 
 
-	void andaBaixo()
-	{
-		y = y + DIAMETRO;
-		repaint();
+    void andaBaixo()
+    {
+        y = y + DIAMETRO;
+        repaint();
 
-	}
+    }
     // acoes 1 esq 2 dir 3 cima 4 baixo
     void controleAnda(int op)
     {
@@ -214,12 +199,12 @@ public class Agente extends JPanel implements Runnable{
         }
     }
 
-	@Override
-	public void run() {
-		while(true)
-		{
-			traversePreOrder(root);
-		}
-	}
+    @Override
+    public void run() {
+        while(true)
+        {
+            traversePreOrder(root);
+        }
+    }
 
 }
