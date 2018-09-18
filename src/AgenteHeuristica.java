@@ -7,25 +7,10 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 
-public class AgenteHeuristica extends JPanel implements Runnable {
-
-    public class Player {
-        private int x;
-        private int y;
-        private Boolean isAlive;
-        private Double distancia;
-
-        public Player(int x, int y) {
-            this.x = x;
-            this.y = y;
-            this.isAlive = true;
-            this.distancia = 0.0;
-        }
-    }
+public class AgenteHeuristica extends JPanel {
 
     // objetos
     private JFrame tela;
-    private Thread t;
 
     // constantes
     private static final int X = 0;
@@ -35,18 +20,16 @@ public class AgenteHeuristica extends JPanel implements Runnable {
     private static final int MAX_Y = 600;
     private static final int MIN_Y = 0;
     private static final int DIAMETRO = 50;
-    private static final int TIME = 1;
+    private static final int CAMPO_VISAO = 2;
+    private static final long TIME = 200;
 
 
     //variaveis
     private List<Player> players = new ArrayList<>();
     public int x = 0;
     public int y = 0;
+    public boolean end = false;
     private int[][] inimigos;
-
-    public static void main(String[] args) {
-        new AgenteHeuristica();
-    }
 
     public AgenteHeuristica() {
         tela = new JFrame("buscaCega.Agente Heuristica");
@@ -62,9 +45,6 @@ public class AgenteHeuristica extends JPanel implements Runnable {
         tela.setResizable(false);
 
         inimigos = new int[MAX_X][MAX_Y];
-        t = new Thread(this);
-        t.start();
-
 
         Random ran = new Random();
         /*
@@ -80,11 +60,7 @@ public class AgenteHeuristica extends JPanel implements Runnable {
                     inimigos[i][j] = 0;
             }
         }
-
-
-        // acoes 1 esq 2 dir 3 cima 4 baixo
         // Chama busca com Heuristica
-
     }
 
     /**
@@ -94,16 +70,27 @@ public class AgenteHeuristica extends JPanel implements Runnable {
         return Math.sqrt(Math.pow(Math.abs(inimigo.x - agente.x), 2) + Math.pow(Math.abs(inimigo.y - agente.y), 2));
     }
 
-    private void anda(Player agente) {
-        int xMenor = agente.x - 2 > MIN_X ? agente.x - 2 : MIN_X;
-        int xMaior = agente.x + 2 < MAX_X ? agente.x + 2 : MAX_X;
-        int yMenor = agente.y - 2 > MIN_Y ? agente.y - 2 : MIN_Y;
-        int yMaior = agente.y + 2 < MAX_Y ? agente.y + 2 : MAX_Y;
+    public void anda(Player agente) {
+        int xMenor = agente.x - (CAMPO_VISAO * DIAMETRO) > MIN_X ? agente.x - (CAMPO_VISAO * DIAMETRO) : MIN_X;
+        int xMaior = agente.x + (CAMPO_VISAO * DIAMETRO) < MAX_X ? agente.x + (CAMPO_VISAO * DIAMETRO) : MAX_X;
+        int yMenor = agente.y - (CAMPO_VISAO * DIAMETRO) > MIN_Y ? agente.y - (CAMPO_VISAO * DIAMETRO) : MIN_Y;
+        int yMaior = agente.y + (CAMPO_VISAO * DIAMETRO) < MAX_Y ? agente.y + (CAMPO_VISAO * DIAMETRO) : MAX_Y;
         Player menorDistancia;
-
-        List<Player> aux = players.stream()
-                .filter(enemy -> inimgoProximo(enemy, xMenor, xMaior, yMenor, yMaior))
-                .collect(Collectors.toList());
+        try {
+            Thread.sleep(TIME);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+//        List<Player> aux = players.stream()
+//                .filter(enemy -> inimgoProximo(enemy, xMenor, xMaior, yMenor, yMaior))
+//                .collect(Collectors.toList());
+        List<Player> aux = new ArrayList<>();
+        for (int i = 0; i < players.size(); i++) {
+            Player enemy = players.get(i);
+            if (inimgoProximo(enemy, xMenor, xMaior, yMenor, yMaior))
+                aux.add(enemy);
+        }
         if (!aux.isEmpty()) {
             aux.forEach(inimigo -> inimigo.distancia = distancia(agente, inimigo));
             menorDistancia = aux.stream().min(Comparator.comparing(inimigo -> inimigo.distancia)).get();
@@ -113,27 +100,43 @@ public class AgenteHeuristica extends JPanel implements Runnable {
             } else if (agente.y != menorDistancia.y) {
                 if (agente.y < menorDistancia.y) andaBaixo();
                 else andaCima();
-            }
+            } else players.remove(menorDistancia);
         } else {
-            switch (andarilho()) {
-                case 1:
-                    andaDireita();
-                    break;
-                case 2:
-                    andaBaixo();
-                    break;
-                case 3:
-                    andaEsquerda();
-                    break;
-                case 4:
-                    andaCima();
-                    break;
+            int value;
+            boolean isValidValue = false;
+            while (!isValidValue) {
+                value = andarilho();
+                isValidValue = true;
+
+                switch (value) {
+                    case 1:
+                        if (!andaDireita())
+                            isValidValue = false;
+                        break;
+                    case 2:
+                        if (!andaBaixo())
+                            isValidValue = false;
+                        break;
+                    case 3:
+                        if (!andaEsquerda())
+                            isValidValue = false;
+                        break;
+                    case 4:
+                        if (!andaCima())
+                            isValidValue = false;
+                        break;
+                    default:
+                        isValidValue = false;
+                        break;
+                }
             }
         }
+        if (players.isEmpty()) end = true;
     }
 
     private int andarilho() {
         Random ran = new Random();
+
         return ran.nextInt() % 4 + 1;
     }
 
@@ -147,9 +150,8 @@ public class AgenteHeuristica extends JPanel implements Runnable {
      * @param yMaior the y
      * @return the return
      */
-
     private Boolean inimgoProximo(Player player, int xMenor, int xMaior, int yMenor, int yMaior) {
-        return player.x > xMenor && player.x < xMaior && player.y < yMaior && player.y > yMenor;
+        return player.x >= xMenor && player.x <= xMaior && player.y <= yMaior && player.y >= yMenor;
     }
 
 
@@ -175,36 +177,52 @@ public class AgenteHeuristica extends JPanel implements Runnable {
         }
     }
 
-    void andaDireita() {
-        x = x + DIAMETRO;
+    boolean andaDireita() {
+        boolean andou = true;
+
+        if ((x + DIAMETRO) < MAX_X)
+            x = x + DIAMETRO;
+        else
+            andou = false;
+
         repaint();
-
+        return andou;
     }
 
-    void andaEsquerda() {
-        x = x - DIAMETRO;
+    boolean andaEsquerda() {
+        boolean andou = true;
+
+        if ((x - DIAMETRO) >= MIN_X)
+            x = x - DIAMETRO;
+        else
+            andou = false;
+
         repaint();
-
+        return andou;
     }
 
-    void andaCima() {
-        y = y - DIAMETRO;
+    boolean andaCima() {
+        boolean andou = true;
+
+        if ((y - DIAMETRO) >= MIN_Y)
+            y = y - DIAMETRO;
+        else
+            andou = false;
+
         repaint();
-
+        return andou;
     }
 
+    boolean andaBaixo() {
+        boolean andou = true;
 
-    void andaBaixo() {
-        y = y + DIAMETRO;
+        if ((y + DIAMETRO) < MAX_Y)
+            y = y + DIAMETRO;
+        else
+            andou = false;
+
         repaint();
-
+        return andou;
     }
 
-
-    @Override
-    public void run() {
-        while (true) {
-            anda(new Player(x, y));
-        }
-    }
 }
