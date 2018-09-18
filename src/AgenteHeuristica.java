@@ -25,26 +25,26 @@ public class AgenteHeuristica extends JPanel {
 
 
     //variaveis
-    private List<Player> players = new ArrayList<>();
-    public int x = 0;
-    public int y = 0;
-    public boolean end = false;
+    private List<Player> players;
+    int x;
+    int y;
+    boolean end;
     private int[][] inimigos;
+    private boolean direcaoY;
+    private boolean direcaoX;
 
     public AgenteHeuristica() {
+        players = new ArrayList<>();
+        x = 0;
+        y = 0;
+        end = false;
+
+        direcaoY = false;
+        direcaoX = false;
+
         tela = new JFrame("buscaCega.Agente Heuristica");
 
-        this.setDoubleBuffered(true);
-        this.setLayout(null);
-
-        tela.getContentPane().add(this);
-
-        tela.setSize(MAX_X, MAX_Y);
-        tela.setVisible(true);
-        tela.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        tela.setResizable(false);
-
-        inimigos = new int[MAX_X][MAX_Y];
+        criaTela(tela);
 
         Random ran = new Random();
         /*
@@ -63,6 +63,20 @@ public class AgenteHeuristica extends JPanel {
         // Chama busca com Heuristica
     }
 
+    private void criaTela(JFrame tela) {
+        this.setDoubleBuffered(true);
+        this.setLayout(null);
+
+        this.tela.getContentPane().add(this);
+
+        this.tela.setSize(MAX_X, MAX_Y);
+        this.tela.setVisible(true);
+        this.tela.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.tela.setResizable(false);
+
+        inimigos = new int[MAX_X][MAX_Y];
+    }
+
     /**
      * calcula a posição dos inimigos
      */
@@ -75,6 +89,7 @@ public class AgenteHeuristica extends JPanel {
         int xMaior = agente.x + (CAMPO_VISAO * DIAMETRO) < MAX_X ? agente.x + (CAMPO_VISAO * DIAMETRO) : MAX_X;
         int yMenor = agente.y - (CAMPO_VISAO * DIAMETRO) > MIN_Y ? agente.y - (CAMPO_VISAO * DIAMETRO) : MIN_Y;
         int yMaior = agente.y + (CAMPO_VISAO * DIAMETRO) < MAX_Y ? agente.y + (CAMPO_VISAO * DIAMETRO) : MAX_Y;
+
         Player menorDistancia;
         try {
             Thread.sleep(TIME);
@@ -102,43 +117,32 @@ public class AgenteHeuristica extends JPanel {
                 else andaCima();
             } else players.remove(menorDistancia);
         } else {
-            int value;
-            boolean isValidValue = false;
-            while (!isValidValue) {
-                value = andarilho();
-                isValidValue = true;
-
-                switch (value) {
-                    case 1:
-                        if (!andaDireita())
-                            isValidValue = false;
-                        break;
-                    case 2:
-                        if (!andaBaixo())
-                            isValidValue = false;
-                        break;
-                    case 3:
-                        if (!andaEsquerda())
-                            isValidValue = false;
-                        break;
-                    case 4:
-                        if (!andaCima())
-                            isValidValue = false;
-                        break;
-                    default:
-                        isValidValue = false;
-                        break;
+            if (direcaoX) {
+                if (!andaDireita()) {
+                    andaVertical();
+                    direcaoX = !direcaoX;
                 }
+            } else if (!andaEsquerda()) {
+                andaVertical();
+                direcaoX = !direcaoX;
             }
         }
+
         if (players.isEmpty()) end = true;
     }
 
-    private int andarilho() {
-        Random ran = new Random();
-
-        return ran.nextInt() % 4 + 1;
+    private void andaVertical() {
+        if (direcaoY) {
+            if (!andaBaixo()) {
+                andaCima();
+                direcaoY = !direcaoY;
+            }
+        } else if (!andaCima()) {
+            andaBaixo();
+            direcaoY = !direcaoY;
+        }
     }
+
 
     /**
      * Verifica o inimigo está dentro do campo de visão
