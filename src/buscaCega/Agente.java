@@ -1,3 +1,4 @@
+package buscaCega;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -18,6 +19,7 @@ public class Agente extends JPanel implements Runnable{
     private static final int MAX_Y = 600;
     private static final int MIN_Y = 0;
     private static final int DIAMETRO = 50;
+    private static final int TIME = 150;
 
     //variaveis
     private int x = 0;
@@ -30,7 +32,7 @@ public class Agente extends JPanel implements Runnable{
 
     public Agente()
     {
-        tela = new JFrame("Agente Busca-Cega");
+        tela = new JFrame("buscaCega.Agente Busca-Cega");
 
         this.setDoubleBuffered(true);
         this.setLayout(null);
@@ -192,7 +194,7 @@ public class Agente extends JPanel implements Runnable{
     void controleAnda(int op)
     {
         try {
-            Thread.sleep(500);
+            Thread.sleep(TIME);
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
