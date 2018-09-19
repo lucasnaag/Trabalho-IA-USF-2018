@@ -1,3 +1,5 @@
+package agente.buscaCega;
+
 class Node {
     int value;
     

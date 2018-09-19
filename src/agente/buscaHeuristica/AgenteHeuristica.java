@@ -1,10 +1,11 @@
+package agente.buscaHeuristica;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 
 public class AgenteHeuristica extends JPanel {
@@ -13,8 +14,6 @@ public class AgenteHeuristica extends JPanel {
     private JFrame tela;
 
     // constantes
-    private static final int X = 0;
-    private static final int Y = 1;
     private static final int MAX_X = 800;
     private static final int MIN_X = 0;
     private static final int MAX_Y = 600;
@@ -22,7 +21,6 @@ public class AgenteHeuristica extends JPanel {
     private static final int DIAMETRO = 50;
     private static final int CAMPO_VISAO = 2;
     private static final long TIME = 200;
-
 
     //variaveis
     private List<Player> players;
@@ -33,7 +31,7 @@ public class AgenteHeuristica extends JPanel {
     private boolean direcaoY;
     private boolean direcaoX;
 
-    public AgenteHeuristica() {
+    AgenteHeuristica() {
         players = new ArrayList<>();
         x = 0;
         y = 0;
@@ -42,14 +40,16 @@ public class AgenteHeuristica extends JPanel {
         direcaoY = false;
         direcaoX = false;
 
-        tela = new JFrame("buscaCega.Agente Heuristica");
+        tela = new JFrame("Busca com Heuristica - Agente Inteligente");
 
         criaTela(tela);
 
+         // Inicializa os inimigos e salva na lista
+        geraInimigos();
+    }
+
+    private void geraInimigos() {
         Random ran = new Random();
-        /*
-         * Inicializa os inimigos e salva na lista
-         */
         for (int i = 0; i < inimigos.length; i = i + DIAMETRO) {
             for (int j = 0; j < inimigos[i].length; j = j + DIAMETRO) {
 
@@ -60,31 +60,34 @@ public class AgenteHeuristica extends JPanel {
                     inimigos[i][j] = 0;
             }
         }
-        // Chama busca com Heuristica
     }
 
     private void criaTela(JFrame tela) {
         this.setDoubleBuffered(true);
         this.setLayout(null);
-
         this.tela.getContentPane().add(this);
-
         this.tela.setSize(MAX_X, MAX_Y);
         this.tela.setVisible(true);
         this.tela.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.tela.setResizable(false);
-
         inimigos = new int[MAX_X][MAX_Y];
     }
 
     /**
-     * calcula a posição dos inimigos
+     * Calcula a distancia entre o inimigo e o agente
+     * @param agente player agente inteligente
+     * @param inimigo player inimigo
+     * @return distancia entre o inimigo e o agente
      */
     private double distancia(Player agente, Player inimigo) {
         return Math.sqrt(Math.pow(Math.abs(inimigo.x - agente.x), 2) + Math.pow(Math.abs(inimigo.y - agente.y), 2));
     }
 
-    public void anda(Player agente) {
+    /**
+     * Realiza o próximo movimento de acordo com a distancia do inimigo
+     * @param agente player agente inteligente
+     */
+    void anda(Player agente) {
         int xMenor = agente.x - (CAMPO_VISAO * DIAMETRO) > MIN_X ? agente.x - (CAMPO_VISAO * DIAMETRO) : MIN_X;
         int xMaior = agente.x + (CAMPO_VISAO * DIAMETRO) < MAX_X ? agente.x + (CAMPO_VISAO * DIAMETRO) : MAX_X;
         int yMenor = agente.y - (CAMPO_VISAO * DIAMETRO) > MIN_Y ? agente.y - (CAMPO_VISAO * DIAMETRO) : MIN_Y;
@@ -94,21 +97,17 @@ public class AgenteHeuristica extends JPanel {
         try {
             Thread.sleep(TIME);
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
-//        List<Player> aux = players.stream()
-//                .filter(enemy -> inimgoProximo(enemy, xMenor, xMaior, yMenor, yMaior))
-//                .collect(Collectors.toList());
+
         List<Player> aux = new ArrayList<>();
-        for (int i = 0; i < players.size(); i++) {
-            Player enemy = players.get(i);
+        for (Player enemy : players) {
             if (inimgoProximo(enemy, xMenor, xMaior, yMenor, yMaior))
                 aux.add(enemy);
         }
         if (!aux.isEmpty()) {
             aux.forEach(inimigo -> inimigo.distancia = distancia(agente, inimigo));
-            menorDistancia = aux.stream().min(Comparator.comparing(inimigo -> inimigo.distancia)).get();
+            menorDistancia = aux.stream().min(Comparator.comparing(inimigo -> inimigo.distancia)).orElse(null);
             if (agente.x != menorDistancia.x) {
                 if (agente.x < menorDistancia.x) andaDireita();
                 else andaEsquerda();
@@ -131,6 +130,9 @@ public class AgenteHeuristica extends JPanel {
         if (players.isEmpty()) end = true;
     }
 
+    /**
+     * Faz o agente andar na vertical quando estiver no modo de busca cega
+     */
     private void andaVertical() {
         if (direcaoY) {
             if (!andaBaixo()) {

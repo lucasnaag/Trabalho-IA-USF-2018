@@ -1,11 +1,11 @@
-package buscaCega;
+package agente.buscaCega;
 
-import java.awt.Color;
-import java.awt.Graphics;
+import agente.buscaHeuristica.Player;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
 import java.util.Random;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 public class Agente extends JPanel implements Runnable{
     // objetos
@@ -22,8 +22,8 @@ public class Agente extends JPanel implements Runnable{
     private static final int TIME = 150;
 
     //variaveis
-    private int x = 0;
-    private int y = 0;
+    private int verticeX = 0;
+    private int verticeY = 0;
     private int[][] inimigos;
 
     public static void main(String[] args){
@@ -32,7 +32,7 @@ public class Agente extends JPanel implements Runnable{
 
     public Agente()
     {
-        tela = new JFrame("buscaCega.Agente Busca-Cega");
+        tela = new JFrame("agente.buscaCega.Agente Busca-Cega");
 
         this.setDoubleBuffered(true);
         this.setLayout(null);
@@ -64,10 +64,9 @@ public class Agente extends JPanel implements Runnable{
         }
 
         // acoes 1 esq 2 dir 3 cima 4 baixo
-        if(x != (MAX_X - DIAMETRO) && y != (MAX_Y - DIAMETRO))
+        if(verticeX != (MAX_X - DIAMETRO) && verticeY != (MAX_Y - DIAMETRO))
             BuscaCega();
     }
-
     public void paint(Graphics g){
 
 		g.setColor(getBackground());
@@ -75,19 +74,17 @@ public class Agente extends JPanel implements Runnable{
 		g.setColor(getForeground());
 		g.setColor(Color.RED);
 
-		g.fillOval(x, y, DIAMETRO, DIAMETRO);
-		inimigos[x][y] = 0;
+		g.fillOval(verticeX, verticeY, DIAMETRO, DIAMETRO);
+		inimigos[verticeX][verticeY] = 0;
 
-		System.out.println(" x" +x+ " y " +y);
+		System.out.println(" verticeX: " + verticeX + " verticeY: " + verticeY);
 
-		for (int i = 0; i < inimigos.length; i = i + DIAMETRO) {
-			for (int j = 0; j < inimigos[i].length; j = j + DIAMETRO) {
-				if(inimigos[i][j] == 1)
-				{
-					g.setColor(Color.BLUE);
-					g.fillOval(i, j, DIAMETRO, DIAMETRO);
-				}
-			}
+		for (int a = 0; a < inimigos.length; a = a + DIAMETRO) {
+			for (int b = 0; b < inimigos[a].length; b = b + DIAMETRO)
+                if (inimigos[a][b] == 1) {
+                    g.setColor(Color.BLUE);
+                    g.fillOval(a, b, DIAMETRO, DIAMETRO);
+                }
 		}
 	}
 
@@ -133,22 +130,22 @@ public class Agente extends JPanel implements Runnable{
 			switch (node.value)
             {
                 case 1:
-                    if((x - DIAMETRO) < MIN_X) {
+                    if((verticeX - DIAMETRO) < MIN_X) {
                         canWalk = false;
                     }
                     break;
                 case 2:
-                    if((x + DIAMETRO) == MAX_X) {
+                    if((verticeX + DIAMETRO) == MAX_X) {
                         canWalk = false;
                     }
                     break;
                 case 3:
-                    if((y - DIAMETRO) < MIN_Y) {
+                    if((verticeY - DIAMETRO) < MIN_Y) {
                         canWalk = false;
                     }
                     break;
                 case 4:
-                    if((y + DIAMETRO) == MAX_Y) {
+                    if((verticeY + DIAMETRO) == MAX_Y) {
                         canWalk = false;
                     }
                     break;
@@ -157,6 +154,7 @@ public class Agente extends JPanel implements Runnable{
 			if(canWalk)
                 controleAnda(node.value);
 
+
             traversePreOrder(node.ac1);
             traversePreOrder(node.ac2);
         }
@@ -164,21 +162,21 @@ public class Agente extends JPanel implements Runnable{
 
 	void andaDireita()
 	{
-		x = x + DIAMETRO;
+		verticeX = verticeX + DIAMETRO;
 		repaint();
 
 	}
 
 	void andaEsquerda()
 	{
-		x = x - DIAMETRO;
+		verticeX = verticeX - DIAMETRO;
 		repaint();
 
 	}
 
 	void andaCima()
 	{
-		y = y - DIAMETRO;
+		verticeY = verticeY - DIAMETRO;
 		repaint();
 
 	}
@@ -186,7 +184,7 @@ public class Agente extends JPanel implements Runnable{
 
 	void andaBaixo()
 	{
-		y = y + DIAMETRO;
+		verticeY = verticeY + DIAMETRO;
 		repaint();
 
 	}
