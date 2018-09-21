@@ -19,8 +19,8 @@ public class AgenteHeuristica extends JPanel {
     private static final int MAX_Y = 600;
     private static final int MIN_Y = 0;
     private static final int DIAMETRO = 50;
-    private static final int CAMPO_VISAO = 2;
-    private static final long TIME = 200;
+    private static final int CAMPO_VISAO = 3;
+    private static final long TIME = 250;
 
     //variaveis
     private List<Player> players;
@@ -33,12 +33,10 @@ public class AgenteHeuristica extends JPanel {
 
     AgenteHeuristica() {
         players = new ArrayList<>();
-        x = 0;
-        y = 0;
+        x = 0; y = 0;
         end = false;
-
-        direcaoY = false;
-        direcaoX = false;
+        direcaoY = true;
+        direcaoX = true;
 
         tela = new JFrame("Busca com Heuristica - Agente Inteligente");
 
